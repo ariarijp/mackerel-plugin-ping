@@ -13,47 +13,54 @@ import (
 )
 
 type PingPlugin struct {
-	Host     string
+	Hosts    []string
 	Tempfile string
 }
 
 func (pp PingPlugin) FetchMetrics() (map[string]float64, error) {
-	pinger := fping.NewPinger()
-
-	ra, err := net.ResolveIPAddr("ip4:icmp", pp.Host)
-	if err != nil {
-		return nil, err
-	}
-	pinger.AddIPAddr(ra)
-
 	stat := make(map[string]float64)
 
+	pinger := fping.NewPinger()
 	pinger.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
 		rttMicroSec := float64(rtt.Nanoseconds()) / 1000.0 / 1000.0
-		stat[escapeHostName(pp.Host)] = rttMicroSec
+		stat[escapeHostName(addr.String())] = rttMicroSec
 	}
 
-	err = pinger.Run()
+	for _, host := range pp.Hosts {
+		ra, err := net.ResolveIPAddr("ip4:icmp", host)
+		if err != nil {
+			return nil, err
+		}
+
+		pinger.AddIPAddr(ra)
+	}
+
+	err := pinger.Run()
 	if err != nil {
 		return nil, err
 	}
+
+	pinger.RunLoop()
 
 	return stat, nil
 }
 
 func (pp PingPlugin) GraphDefinition() map[string](mp.Graphs) {
+	metrics := []mp.Metrics{}
+	for _, host := range pp.Hosts {
+		metrics = append(metrics, mp.Metrics{
+			Name:    escapeHostName(host),
+			Label:   host,
+			Diff:    false,
+			Stacked: true,
+		})
+	}
+
 	return map[string](mp.Graphs){
 		"ping.rtt": mp.Graphs{
-			Label: "Ping Round Trip Times",
-			Unit:  "float",
-			Metrics: [](mp.Metrics){
-				mp.Metrics{
-					Name:    escapeHostName(pp.Host),
-					Label:   pp.Host,
-					Diff:    false,
-					Stacked: true,
-				},
-			},
+			Label:   "Ping Round Trip Times",
+			Unit:    "float",
+			Metrics: metrics,
 		},
 	}
 }
@@ -68,7 +75,7 @@ func main() {
 	flag.Parse()
 
 	var pp PingPlugin
-	pp.Host = fmt.Sprintf("%s", *optHost)
+	pp.Hosts = strings.Split(*optHost, ",")
 
 	helper := mp.NewMackerelPlugin(pp)
 
