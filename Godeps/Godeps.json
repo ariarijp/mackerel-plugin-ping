@@ -1,0 +1,30 @@
+{
+	"ImportPath": "github.com/ariarijp/mackerel-plugin-ping",
+	"GoVersion": "go1.5",
+	"Deps": [
+		{
+			"ImportPath": "github.com/mackerelio/go-mackerel-plugin",
+			"Rev": "7bc9a59034e8c2c4f9287bbab480179924fa78a4"
+		},
+		{
+			"ImportPath": "github.com/tatsushid/go-fastping",
+			"Rev": "06cac0fecdc29196187908b74939a2926c28a6d9"
+		},
+		{
+			"ImportPath": "golang.org/x/net/icmp",
+			"Rev": "ea6dba8c93880aa07d6ebed83c3c680cd9faa63a"
+		},
+		{
+			"ImportPath": "golang.org/x/net/internal/iana",
+			"Rev": "ea6dba8c93880aa07d6ebed83c3c680cd9faa63a"
+		},
+		{
+			"ImportPath": "golang.org/x/net/ipv4",
+			"Rev": "ea6dba8c93880aa07d6ebed83c3c680cd9faa63a"
+		},
+		{
+			"ImportPath": "golang.org/x/net/ipv6",
+			"Rev": "ea6dba8c93880aa07d6ebed83c3c680cd9faa63a"
+		}
+	]
+}
