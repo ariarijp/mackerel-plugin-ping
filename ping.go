@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -69,13 +70,26 @@ func escapeHostName(host string) string {
 	return strings.Replace(host, ".", "_", -1)
 }
 
+func validate(ipAddr string) bool {
+	r := regexp.MustCompile("^\\d+\\.\\d+\\.\\d+\\.\\d+$")
+	return r.MatchString(ipAddr)
+}
+
 func main() {
-	optHost := flag.String("host", "localhost", "Hostname")
+	optHost := flag.String("host", "127.0.0.1", "IP Address(es)")
 	optTempfile := flag.String("tempfile", "", "Temp file name")
 	flag.Parse()
 
+	hosts := strings.Split(*optHost, ",")
+	for _, host := range hosts {
+		if !validate(host) {
+			fmt.Fprintf(os.Stderr, "error: %v must be ipv4 address format\n", host)
+			os.Exit(1)
+		}
+	}
+
 	var pp PingPlugin
-	pp.Hosts = strings.Split(*optHost, ",")
+	pp.Hosts = hosts
 
 	helper := mp.NewMackerelPlugin(pp)
 
