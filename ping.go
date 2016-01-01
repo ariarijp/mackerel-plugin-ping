@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"net"
@@ -73,17 +74,27 @@ func validate(ipAddr string) bool {
 	return r.MatchString(ipAddr)
 }
 
+func parseHostsString(optHost string) ([]string, error) {
+	hosts := strings.Split(optHost, ",")
+	for _, host := range hosts {
+		if !validate(host) {
+			msg := fmt.Sprintf("error: %v must be ipv4 address format\n", host)
+			return nil, errors.New(msg)
+		}
+	}
+
+	return hosts, nil
+}
+
 func main() {
 	optHost := flag.String("host", "127.0.0.1", "IP Address(es)")
 	optTempfile := flag.String("tempfile", "", "Temp file name")
 	flag.Parse()
 
-	hosts := strings.Split(*optHost, ",")
-	for _, host := range hosts {
-		if !validate(host) {
-			fmt.Fprintf(os.Stderr, "error: %v must be ipv4 address format\n", host)
-			os.Exit(1)
-		}
+	hosts, err := parseHostsString(*optHost)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error())
+		os.Exit(1)
 	}
 
 	var pp PingPlugin
