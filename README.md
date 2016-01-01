@@ -1,6 +1,8 @@
 mackerel-plugin-ping
 =====================
 
+[![Circle CI](https://circleci.com/gh/ariarijp/mackerel-plugin-ping.svg?style=svg)](https://circleci.com/gh/ariarijp/mackerel-plugin-ping)
+
 ICMP Ping RTT custom metrics plugin for mackerel-agent.
 
 ## Usage
