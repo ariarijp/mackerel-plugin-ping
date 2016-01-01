@@ -76,3 +76,32 @@ func TestValidate(t *testing.T) {
 		t.Errorf("got %v\nwant %v", actual, expected)
 	}
 }
+
+func TestParseHostsString(t *testing.T) {
+	actual, err := parseHostsString("127.0.0.1")
+	expected := []string{"127.0.0.1"}
+	if err != nil {
+		t.Errorf("got %v", err)
+	}
+	if actual[0] != expected[0] {
+		t.Errorf("got %v\nwant %v", actual, expected)
+	}
+
+	actual, err = parseHostsString("8.8.8.8,8.8.4.4")
+	expected = []string{"8.8.8.8", "8.8.4.4"}
+	if err != nil {
+		t.Errorf("got %v", err)
+	}
+	if actual[0] != expected[0] {
+		t.Errorf("got %v\nwant %v", actual, expected)
+	}
+	if actual[1] != expected[1] {
+		t.Errorf("got %v\nwant %v", actual, expected)
+	}
+
+	_, err = parseHostsString("8.8.8.")
+	expected = nil
+	if err == nil {
+		t.Errorf("got %v", err)
+	}
+}
