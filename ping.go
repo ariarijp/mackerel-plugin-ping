@@ -41,8 +41,6 @@ func (pp PingPlugin) FetchMetrics() (map[string]float64, error) {
 		return nil, err
 	}
 
-	pinger.RunLoop()
-
 	return stat, nil
 }
 
