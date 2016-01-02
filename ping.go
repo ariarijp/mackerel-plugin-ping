@@ -52,7 +52,7 @@ func (pp PingPlugin) GraphDefinition() map[string](mp.Graphs) {
 			Name:    escapeHostName(host),
 			Label:   host,
 			Diff:    false,
-			Stacked: true,
+			Stacked: false,
 		})
 	}
 

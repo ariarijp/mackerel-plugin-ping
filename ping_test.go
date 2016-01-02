@@ -24,6 +24,12 @@ func TestGraphDefinition(t *testing.T) {
 		t.Errorf("got %v\nwant %v", actual, expected)
 	}
 
+	actual_stacked := gd["ping.rtt"].Metrics[0].Stacked
+	expected_stacked := false
+	if actual_stacked != expected_stacked {
+		t.Errorf("got %v\nwant %v", actual_stacked, expected_stacked)
+	}
+
 	actual = fmt.Sprintf("%v", reflect.TypeOf(gd["ping.rtt"].Metrics))
 	expected = "[]mackerelplugin.Metrics"
 	if actual != expected {
