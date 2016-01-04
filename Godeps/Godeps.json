@@ -3,8 +3,8 @@
 	"GoVersion": "go1.5",
 	"Deps": [
 		{
-			"ImportPath": "github.com/mackerelio/go-mackerel-plugin",
-			"Rev": "7bc9a59034e8c2c4f9287bbab480179924fa78a4"
+			"ImportPath": "github.com/mackerelio/go-mackerel-plugin-helper",
+			"Rev": "21eee70f2e7ec615337274d8673f48827b19f8bc"
 		},
 		{
 			"ImportPath": "github.com/tatsushid/go-fastping",

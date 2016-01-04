@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	mp "github.com/mackerelio/go-mackerel-plugin"
+	mp "github.com/mackerelio/go-mackerel-plugin-helper"
 	fping "github.com/tatsushid/go-fastping"
 )
 
@@ -19,8 +19,8 @@ type PingPlugin struct {
 	Tempfile string
 }
 
-func (pp PingPlugin) FetchMetrics() (map[string]float64, error) {
-	stat := make(map[string]float64)
+func (pp PingPlugin) FetchMetrics() (map[string]interface{}, error) {
+	stat := make(map[string]interface{})
 
 	pinger := fping.NewPinger()
 	pinger.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
