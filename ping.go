@@ -69,6 +69,10 @@ func escapeHostName(host string) string {
 	return strings.Replace(host, ".", "_", -1)
 }
 
+func escapeHostNames(hosts string) string {
+	return strings.Replace(escapeHostName(hosts), ",", "-", -1)
+}
+
 func validate(ipAddr string) bool {
 	r := regexp.MustCompile("^\\d+\\.\\d+\\.\\d+\\.\\d+$")
 	return r.MatchString(ipAddr)
@@ -105,7 +109,7 @@ func main() {
 	if *optTempfile != "" {
 		helper.Tempfile = *optTempfile
 	} else {
-		helper.Tempfile = fmt.Sprintf("/tmp/mackerel-plugin-ping-%s", *optHost)
+		helper.Tempfile = fmt.Sprintf("/tmp/mackerel-plugin-ping-%s", escapeHostNames(*optHost))
 	}
 
 	if os.Getenv("MACKEREL_AGENT_PLUGIN_META") != "" {
