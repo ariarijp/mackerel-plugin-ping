@@ -22,10 +22,15 @@ type PingPlugin struct {
 func (pp PingPlugin) FetchMetrics() (map[string]interface{}, error) {
 	stat := make(map[string]interface{})
 
+	var prevRtt time.Duration
+
 	pinger := fping.NewPinger()
 	pinger.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
-		rttMicroSec := float64(rtt.Nanoseconds()) / 1000.0 / 1000.0
+		rttMicroSec := float64(rtt.Nanoseconds()-prevRtt.Nanoseconds()) / 1000.0 / 1000.0
+		fmt.Println(rttMicroSec)
 		stat[escapeHostName(addr.String())] = rttMicroSec
+
+		prevRtt = rtt
 	}
 
 	for _, host := range pp.Hosts {
