@@ -58,20 +58,6 @@ func TestEscapeHostName(t *testing.T) {
 	}
 }
 
-func TestEscapeHostNames(t *testing.T) {
-	actual := escapeHostNames("127.0.0.1")
-	expected := "127_0_0_1"
-	if actual != expected {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
-
-	actual = escapeHostNames("8.8.8.8,8.8.4.4")
-	expected = "8_8_8_8-8_8_4_4"
-	if actual != expected {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
-}
-
 func TestValidate(t *testing.T) {
 	actual := validate("127.0.0.1")
 	expected := true
