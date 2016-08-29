@@ -9,6 +9,7 @@ import (
 func TestGraphDefinition(t *testing.T) {
 	var pp PingPlugin
 	pp.Hosts = []string{"127.0.0.1"}
+	pp.Labels = []string{"localhost"}
 
 	gd := pp.GraphDefinition()
 
@@ -98,28 +99,69 @@ func TestValidate(t *testing.T) {
 }
 
 func TestParseHostsString(t *testing.T) {
-	actual, err := parseHostsString("127.0.0.1")
+	actualIPs, actualLabels, err := parseHostsString("127.0.0.1")
 	expected := []string{"127.0.0.1"}
 	if err != nil {
 		t.Errorf("got %v", err)
 	}
-	if actual[0] != expected[0] {
-		t.Errorf("got %v\nwant %v", actual, expected)
+	if actualIPs[0] != expected[0] {
+		t.Errorf("got %v\nwant %v", actualIPs, expected)
+	}
+	if actualLabels[0] != expected[0] {
+		t.Errorf("got %v\nwant %v", actualLabels, expected)
 	}
 
-	actual, err = parseHostsString("8.8.8.8,8.8.4.4")
+	actualIPs, actualLabels, err = parseHostsString("8.8.8.8,8.8.4.4")
 	expected = []string{"8.8.8.8", "8.8.4.4"}
 	if err != nil {
 		t.Errorf("got %v", err)
 	}
-	if actual[0] != expected[0] {
-		t.Errorf("got %v\nwant %v", actual, expected)
+	if actualIPs[0] != expected[0] {
+		t.Errorf("got %v\nwant %v", actualIPs, expected)
 	}
-	if actual[1] != expected[1] {
-		t.Errorf("got %v\nwant %v", actual, expected)
+	if actualLabels[0] != expected[0] {
+		t.Errorf("got %v\nwant %v", actualLabels, expected)
+	}
+	if actualIPs[1] != expected[1] {
+		t.Errorf("got %v\nwant %v", actualIPs, expected)
+	}
+	if actualLabels[1] != expected[1] {
+		t.Errorf("got %v\nwant %v", actualLabels, expected)
 	}
 
-	_, err = parseHostsString("8.8.8.")
+	actualIPs, actualLabels, err = parseHostsString("8.8.8.8:google-public-dns-a")
+	expected = []string{"8.8.8.8"}
+	expected_labels := []string{"google-public-dns-a"}
+	if err != nil {
+		t.Errorf("got %v", err)
+	}
+	if actualIPs[0] != expected[0] {
+		t.Errorf("got %v\nwant %v", actualIPs, expected)
+	}
+	if actualLabels[0] != expected_labels[0] {
+		t.Errorf("got %v\nwant %v", actualLabels, expected)
+	}
+
+	actualIPs, actualLabels, err = parseHostsString("8.8.8.8:google-public-dns-a,8.8.4.4:google-public-dns-b")
+	expected = []string{"8.8.8.8", "8.8.4.4"}
+	expected_labels = []string{"google-public-dns-a", "google-public-dns-b"}
+	if err != nil {
+		t.Errorf("got %v", err)
+	}
+	if actualIPs[0] != expected[0] {
+		t.Errorf("got %v\nwant %v", actualIPs, expected)
+	}
+	if actualLabels[0] != expected_labels[0] {
+		t.Errorf("got %v\nwant %v", actualLabels, expected)
+	}
+	if actualIPs[1] != expected[1] {
+		t.Errorf("got %v\nwant %v", actualIPs, expected)
+	}
+	if actualLabels[1] != expected_labels[1] {
+		t.Errorf("got %v\nwant %v", actualLabels, expected)
+	}
+
+	_, _, err = parseHostsString("8.8.8.")
 	expected = nil
 	if err == nil {
 		t.Errorf("got %v", err)

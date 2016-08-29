@@ -16,6 +16,7 @@ import (
 
 type PingPlugin struct {
 	Hosts    []string
+	Labels   []string
 	Tempfile string
 }
 
@@ -52,10 +53,10 @@ func (pp PingPlugin) FetchMetrics() (map[string]interface{}, error) {
 
 func (pp PingPlugin) GraphDefinition() map[string](mp.Graphs) {
 	metrics := []mp.Metrics{}
-	for _, host := range pp.Hosts {
+	for i := 0; i < len(pp.Hosts); i++ {
 		metrics = append(metrics, mp.Metrics{
-			Name:    escapeHostName(host),
-			Label:   host,
+			Name:    escapeHostName(pp.Hosts[i]),
+			Label:   pp.Labels[i],
 			Diff:    false,
 			Stacked: false,
 		})
@@ -83,24 +84,33 @@ func validate(ipAddr string) bool {
 	return r.MatchString(ipAddr)
 }
 
-func parseHostsString(optHost string) ([]string, error) {
+func parseHostsString(optHost string) ([]string, []string, error) {
 	hosts := strings.Split(optHost, ",")
-	for _, host := range hosts {
-		if !validate(host) {
-			msg := fmt.Sprintf("error: %v must be ipv4 address format\n", host)
-			return nil, errors.New(msg)
+	ips, labels := make([]string, len(hosts)), make([]string, len(hosts))
+
+	for i := 0; i < len(hosts); i++ {
+		v := strings.SplitN(hosts[i], ":", 2)
+		if !validate(v[0]) {
+			msg := fmt.Sprintf("error: %v must be ipv4 address format\n", v[0])
+			return nil, nil, errors.New(msg)
+		}
+		ips[i] = v[0]
+		if len(v) == 2 {
+			labels[i] = v[1]
+		} else {
+			labels[i] = ips[i]
 		}
 	}
 
-	return hosts, nil
+	return ips, labels, nil
 }
 
 func main() {
-	optHost := flag.String("host", "127.0.0.1", "IP Address(es)")
+	optHost := flag.String("host", "127.0.0.1:localhost", "IP Address[:Metric label],IP[:Label],...")
 	optTempfile := flag.String("tempfile", "", "Temp file name")
 	flag.Parse()
 
-	hosts, err := parseHostsString(*optHost)
+	hosts, labels, err := parseHostsString(*optHost)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, err.Error())
 		os.Exit(1)
@@ -108,13 +118,14 @@ func main() {
 
 	var pp PingPlugin
 	pp.Hosts = hosts
+	pp.Labels = labels
 
 	helper := mp.NewMackerelPlugin(pp)
 
 	if *optTempfile != "" {
 		helper.Tempfile = *optTempfile
 	} else {
-		helper.Tempfile = fmt.Sprintf("/tmp/mackerel-plugin-ping-%s", escapeHostNames(*optHost))
+		helper.Tempfile = fmt.Sprintf("/tmp/mackerel-plugin-ping-%s", escapeHostName(strings.Join(hosts[:], "-")))
 	}
 
 	if os.Getenv("MACKEREL_AGENT_PLUGIN_META") != "" {
