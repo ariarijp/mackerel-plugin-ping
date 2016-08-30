@@ -25,8 +25,8 @@ func (pp PingPlugin) FetchMetrics() (map[string]interface{}, error) {
 
 	pinger := fping.NewPinger()
 	pinger.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
-		rttMicroSec := float64(rtt.Nanoseconds()) / 1000.0 / 1000.0
-		stat[escapeHostName(addr.String())] = rttMicroSec
+		rttMilliSec := float64(rtt.Nanoseconds()) / 1000.0 / 1000.0
+		stat[escapeHostName(addr.String())] = rttMilliSec
 	}
 
 	for _, host := range pp.Hosts {
