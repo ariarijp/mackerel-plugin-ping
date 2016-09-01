@@ -14,27 +14,42 @@ import (
 )
 
 type PingPlugin struct {
-	Hosts    []string
-	Labels   []string
-	Tempfile string
+	Hosts       []string
+	Labels      []string
+	Tempfile    string
+	Count       int
+	WaitTime    int
+	AcceptCount int
 }
 
 func (pp PingPlugin) FetchMetrics() (map[string]interface{}, error) {
 	stat := make(map[string]interface{})
+	total := make(map[string]float64)
+	count := make(map[string]int)
 
 	pinger := fping.NewPinger()
 	pinger.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
 		rttMilliSec := float64(rtt.Nanoseconds()) / 1000.0 / 1000.0
-		stat[escapeHostName(addr.String())] = rttMilliSec
+		total[escapeHostName(addr.String())] += rttMilliSec
+		count[escapeHostName(addr.String())] += 1
 	}
 
 	for _, host := range pp.Hosts {
 		pinger.AddIP(host)
 	}
 
-	err := pinger.Run()
-	if err != nil {
-		return nil, err
+	pinger.MaxRTT = time.Millisecond * time.Duration(pp.WaitTime)
+
+	for i := 0; i < pp.Count; i++ {
+		err := pinger.Run()
+		if err != nil {
+			return nil, err
+		}
+	}
+	for k, v := range total {
+		if count[k] >= (pp.Count - pp.AcceptCount) {
+			stat[k] = v / float64(count[k])
+		}
 	}
 
 	return stat, nil
@@ -101,6 +116,9 @@ func parseHostsString(optHost string, strict ...string) ([]string, []string, err
 func main() {
 	optHost := flag.String("host", "127.0.0.1:localhost", "IP Address[:Metric label],IP[:Label],...")
 	optTempfile := flag.String("tempfile", "", "Temp file name")
+	optCount := flag.Int("count", 1, "Sending (and receiving) count ping packets.")
+	optWaitTime := flag.Int("waittime", 1000, "Wait time, Max RTT(ms)")
+	optAcceptCount := flag.Int("acceptmiss", 0, "Accept out of wait time count ping packets.")
 	flag.Parse()
 
 	hosts, labels, err := parseHostsString(*optHost, os.Getenv("MACKEREL_AGENT_PLUGIN_META"))
@@ -112,6 +130,9 @@ func main() {
 	var pp PingPlugin
 	pp.Hosts = hosts
 	pp.Labels = labels
+	pp.Count = *optCount
+	pp.WaitTime = *optWaitTime
+	pp.AcceptCount = *optAcceptCount
 
 	helper := mp.NewMackerelPlugin(pp)
 
