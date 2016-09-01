@@ -165,7 +165,7 @@ func TestParseHostsString(t *testing.T) {
 		t.Errorf("got %v\nwant %v", actualLabels, expected)
 	}
 
-  actualIPs, actualLabels, err = parseHostsString("m.root-servers.net:m-root")
+	actualIPs, actualLabels, err = parseHostsString("m.root-servers.net:m-root")
 	expected = []string{"202.12.27.33"}
 	expected_labels = []string{"m-root"}
 	if actualIPs[0] != expected[0] {
