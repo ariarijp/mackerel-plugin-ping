@@ -147,9 +147,36 @@ func TestParseHostsString(t *testing.T) {
 		t.Errorf("got %v\nwant %v", actualLabels, expected)
 	}
 
-	_, _, err = parseHostsString("8.8.8.")
-	expected = nil
+	_, _, err = parseHostsString("8.8.8.", "1")
 	if err == nil {
 		t.Errorf("got %v", err)
+	}
+
+	_, _, err = parseHostsString("m.root-servers.net", "1")
+	if err != nil {
+		t.Errorf("got %v", err)
+	}
+
+	actualIPs, actualLabels, err = parseHostsString("m.root-servers.net", "1")
+	expected = []string{"202.12.27.33"}
+	expected_labels = []string{"m.root-servers.net"}
+	if err != nil {
+		t.Errorf("got %v", err)
+	}
+	if actualIPs[0] != expected[0] {
+		t.Errorf("got %v\nwant %v", actualIPs, expected)
+	}
+	if actualLabels[0] != expected_labels[0] {
+		t.Errorf("got %v\nwant %v", actualLabels, expected)
+	}
+
+  actualIPs, actualLabels, err = parseHostsString("m.root-servers.net:m-root")
+	expected = []string{"202.12.27.33"}
+	expected_labels = []string{"m-root"}
+	if actualIPs[0] != expected[0] {
+		t.Errorf("got %v\nwant %v", actualIPs, expected)
+	}
+	if actualLabels[0] != expected_labels[0] {
+		t.Errorf("got %v\nwant %v", actualLabels, expected)
 	}
 }

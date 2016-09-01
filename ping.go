@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"net"
@@ -30,12 +29,7 @@ func (pp PingPlugin) FetchMetrics() (map[string]interface{}, error) {
 	}
 
 	for _, host := range pp.Hosts {
-		ra, err := net.ResolveIPAddr("ip4:icmp", host)
-		if err != nil {
-			return nil, err
-		}
-
-		pinger.AddIPAddr(ra)
+		pinger.AddIP(host)
 	}
 
 	err := pinger.Run()
@@ -75,21 +69,29 @@ func validate(ipAddr string) bool {
 	return r.MatchString(ipAddr)
 }
 
-func parseHostsString(optHost string) ([]string, []string, error) {
+func parseHostsString(optHost string, strict ...string) ([]string, []string, error) {
 	hosts := strings.Split(optHost, ",")
 	ips, labels := make([]string, len(hosts)), make([]string, len(hosts))
 
 	for i := 0; i < len(hosts); i++ {
 		v := strings.SplitN(hosts[i], ":", 2)
 		if !validate(v[0]) {
-			msg := fmt.Sprintf("error: %v must be ipv4 address format\n", v[0])
-			return nil, nil, errors.New(msg)
+			ip, err := net.ResolveIPAddr("ip4", v[0])
+			if err != nil {
+				if strict[0] != "" {
+					return nil, nil, err
+				}
+				continue
+			}
+			ips[i] = ip.String()
+		} else {
+			ips[i] = v[0]
 		}
-		ips[i] = v[0]
+
 		if len(v) == 2 {
 			labels[i] = v[1]
 		} else {
-			labels[i] = ips[i]
+			labels[i] = v[0]
 		}
 	}
 
@@ -101,9 +103,9 @@ func main() {
 	optTempfile := flag.String("tempfile", "", "Temp file name")
 	flag.Parse()
 
-	hosts, labels, err := parseHostsString(*optHost)
+	hosts, labels, err := parseHostsString(*optHost, os.Getenv("MACKEREL_AGENT_PLUGIN_META"))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error())
+		fmt.Fprintf(os.Stderr, "%v\n", err.Error())
 		os.Exit(1)
 	}
 
